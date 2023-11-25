@@ -4,7 +4,7 @@ from bitalino import BITalino
 
 # The macAddress variable on Windows can be "XX:XX:XX:XX:XX:XX" or "COMX"
 # while on Mac OS can be "/dev/tty.BITalino-XX-XX-DevB" for devices ending with the last 4 digits of the MAC address or "/dev/tty.BITalino-DevB" for the remaining
-macAddress = "00:00:00:00:00:00"
+macAddress = "EC:1B:BD:62:F4:D9"
 
 # This example will collect data for 5 sec.
 running_time = 5
