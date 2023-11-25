@@ -23,7 +23,7 @@ device = BITalino(macAddress)
 device.battery(batteryThreshold)
 
 # Read BITalino version
-print(device.version())
+#print(device.version())
 
 # Start Acquisition
 device.start(samplingRate, acqChannels)
