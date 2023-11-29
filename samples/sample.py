@@ -3,7 +3,7 @@ import csv
 import numpy as np
 from bitalino import BITalino
 from datetime import datetime
-
+import pandas as pd
 
 # The macAddress variable on Windows can be "XX:XX:XX:XX:XX:XX" or "COMX"
 # while on Mac OS can be "/dev/tty.BITalino-XX-XX-DevB" for devices ending with the last 4 digits of the MAC address or "/dev/tty.BITalino-DevB" for the remaining
@@ -23,6 +23,7 @@ running_time = 5
 batteryThreshold = 30
 acqChannels = [0, 1, 2, 3, 4, 5]
 samplingRate = 1000
+dt = 1 / samplingRate
 nSamples = 5
 digitalOutput_on = [1, 1]
 digitalOutput_off = [0, 0]
@@ -55,7 +56,8 @@ time_taken = datetime.now()
 dt_string = time_taken.strftime("%d_%m_%Y__%H_%M_%S")
 
 header = ["Sequence Number", "Digital 1", "Digital 2", "Digital 3", "Digital 4", "Analog 1", "Analog 2", "Analog 3", "Analog 4","Analog 5","Analog 6"]
-
+upper_bound = 1000
+lower_bound = 0 
 # Create the file and write the header
 with open(f"{dt_string}.csv", 'w', newline='') as file:
     np.savetxt(file, [header], delimiter=",", fmt='%s')
@@ -70,8 +72,29 @@ with open(f"{dt_string}.csv", 'a', newline='') as wr:
         #print(samples)  # Print the samples
         np.savetxt(wr, samples, delimiter=",")  # Append data to CSV
         end = time.time()
-        print(i)
-        i = i+1
+        #increment until 100 sampels atleest 
+        i = i + 1
+        
+        if i == upper_bound:
+            # Apply FFT to the signal
+            # Select 1000 rows from the "Analog 4" column, starting after the first i rows
+            selected_data = df['Analog 4'][lower_bound:upper_bound]
+
+            # Convert the selected data to a NumPy array
+            amplitudes = selected_data.to_numpy()
+            fft_result = np.fft.fft(amplitudes)
+
+            # Compute the frequency bins
+            n = len(amplitudes)
+            frequencies = np.fft.fftfreq(n, dt) 
+
+            # Find the peak frequency
+            peak_frequency = frequencies[np.argmax(np.abs(fft_result))]
+            print(f"The peak frequency is: {peak_frequency} Hz")
+            lower_bound = lower_bound + 1000
+            upper_bound = upper_bound + 1000
+
+        
 
 # Stop acquisition and close connection
 device.trigger(digitalOutput_off)
