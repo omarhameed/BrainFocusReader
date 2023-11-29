@@ -75,26 +75,33 @@ with open(f"{dt_string}.csv", 'a', newline='') as wr:
         #increment until 100 sampels atleest 
         i = i + 1
         
-        if i == upper_bound:
-            # Apply FFT to the signal
-            # Select 1000 rows from the "Analog 4" column, starting after the first i rows
+
+        if i >= upper_bound:
+            # Load the data from CSV
             df = pd.read_csv(f"{dt_string}.csv")
-            selected_data = df['Analog 4'][0:5]
+            
+            # Check if the 'Analog 4' column is loaded correctly
+            if 'Analog 4' in df.columns and len(df['Analog 4']) >= 5:
+                selected_data = df['Analog 4'][lower_bound:upper_bound]
 
-            # Convert the selected data to a NumPy array
-            amplitudes = selected_data.to_numpy()
-            fft_result = np.fft.fft(amplitudes)
+                # Convert the selected data to a NumPy array
+                amplitudes = selected_data.to_numpy()
 
-            # Compute the frequency bins
-            n = len(amplitudes)
-            frequencies = np.fft.fftfreq(n, dt) 
+                # Check if we have enough data points
+                if len(amplitudes) > 0:
+                    fft_result = np.fft.fft(amplitudes)
+                    frequencies = np.fft.fftfreq(len(amplitudes), dt) 
 
-            # Find the peak frequency
-            peak_frequency = frequencies[np.argmax(np.abs(fft_result))]
-            print(f"The peak frequency is: {peak_frequency} Hz")
-            lower_bound = lower_bound + 1
-            upper_bound = upper_bound + 1
-
+                    # Find the peak frequency
+                    peak_frequency = frequencies[np.argmax(np.abs(fft_result))]
+                    print(f"The peak frequency is: {peak_frequency} Hz")
+                else:
+                    print("Not enough data points for FFT.")
+                
+                lower_bound = lower_bound + 1
+                upper_bound = upper_bound + 1
+            else:
+                print("Analog 4 column not found or not enough data.")
         
 
 # Stop acquisition and close connection
