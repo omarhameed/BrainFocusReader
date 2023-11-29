@@ -56,13 +56,13 @@ time_taken = datetime.now()
 dt_string = time_taken.strftime("%d_%m_%Y__%H_%M_%S")
 
 header = ["Sequence Number", "Digital 1", "Digital 2", "Digital 3", "Digital 4", "Analog 1", "Analog 2", "Analog 3", "Analog 4","Analog 5","Analog 6"]
-upper_bound = 1000
+upper_bound = 1
 lower_bound = 0 
 # Create the file and write the header
 with open(f"{dt_string}.csv", 'w', newline='') as file:
     np.savetxt(file, [header], delimiter=",", fmt='%s')
 
-i = 1
+i = 0
 # This loop continues for the duration defined by running_time. In each iteration, it reads nSamples from the BITalino and prints them.
 with open(f"{dt_string}.csv", 'a', newline='') as wr:
     while (end - start) < running_time:
@@ -78,7 +78,8 @@ with open(f"{dt_string}.csv", 'a', newline='') as wr:
         if i == upper_bound:
             # Apply FFT to the signal
             # Select 1000 rows from the "Analog 4" column, starting after the first i rows
-            selected_data = df['Analog 4'][lower_bound:upper_bound]
+            df = pd.read_csv(f"{dt_string}.csv")
+            selected_data = df['Analog 4'][0:5]
 
             # Convert the selected data to a NumPy array
             amplitudes = selected_data.to_numpy()
@@ -91,8 +92,8 @@ with open(f"{dt_string}.csv", 'a', newline='') as wr:
             # Find the peak frequency
             peak_frequency = frequencies[np.argmax(np.abs(fft_result))]
             print(f"The peak frequency is: {peak_frequency} Hz")
-            lower_bound = lower_bound + 1000
-            upper_bound = upper_bound + 1000
+            lower_bound = lower_bound + 1
+            upper_bound = upper_bound + 1
 
         
 
