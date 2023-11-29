@@ -76,32 +76,36 @@ with open(f"{dt_string}.csv", 'a', newline='') as wr:
         i = i + 1
         
 
-        if i >= upper_bound:
-            # Load the data from CSV
-            df = pd.read_csv(f"{dt_string}.csv")
-            
-            # Check if the 'Analog 4' column is loaded correctly
-            if 'Analog 4' in df.columns and len(df['Analog 4']) >= 5:
-                selected_data = df['Analog 4'][lower_bound:upper_bound]
+    if i >= upper_bound:
+        # Load the data from CSV
+        df = pd.read_csv(f"{dt_string}.csv")
+        
+        if 'Analog 4' in df.columns and len(df['Analog 4']) >= upper_bound:
+            selected_data = df['Analog 4'][lower_bound:upper_bound]
+            amplitudes = selected_data.to_numpy()
 
-                # Convert the selected data to a NumPy array
-                amplitudes = selected_data.to_numpy()
+            # Remove DC offset
+            amplitudes = amplitudes - np.mean(amplitudes)
 
-                # Check if we have enough data points
-                if len(amplitudes) > 0:
-                    fft_result = np.fft.fft(amplitudes)
-                    frequencies = np.fft.fftfreq(len(amplitudes), dt) 
+            # Apply a window function
+            window = np.hanning(len(amplitudes))
+            amplitudes_windowed = amplitudes * window
 
-                    # Find the peak frequency
-                    peak_frequency = frequencies[np.argmax(np.abs(fft_result))]
-                    print(f"The peak frequency is: {peak_frequency} Hz")
-                else:
-                    print("Not enough data points for FFT.")
-                
-                lower_bound = lower_bound + 1
-                upper_bound = upper_bound + 1
-            else:
-                print("Analog 4 column not found or not enough data.")
+            # FFT
+            fft_result = np.fft.fft(amplitudes_windowed)
+            frequencies = np.fft.fftfreq(len(amplitudes_windowed), dt) 
+
+            # Analyze the positive frequencies only
+            positive_frequencies = frequencies[:len(frequencies)//2]
+            positive_magnitudes = np.abs(fft_result)[:len(frequencies)//2]
+            peak_frequency = positive_frequencies[np.argmax(positive_magnitudes)]
+            print(f"The peak frequency is: {peak_frequency} Hz")
+
+            # Update bounds for next FFT
+            lower_bound += 100
+            upper_bound += 100
+        else:
+            print("Analog 4 column not found or not enough data.")
         
 
 # Stop acquisition and close connection
